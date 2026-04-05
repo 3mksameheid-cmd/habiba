@@ -63,15 +63,18 @@ button:hover { transform: scale(1.05); background: #ff4d8d; }
 
 /* الجواب والرسالة */
 #letterOverlay { position:fixed; inset:0; background:rgba(0,0,0,0.9); display:none; align-items:center; justify-content:center; z-index:2000; }
-.envelope { width:280px; height:180px; background:#ff2d75; position:relative; cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:10px; transition: 0.5s; }
+.envelope { width:280px; height:180px; background:#ff2d75; position:relative; cursor:pointer; display:flex; align-items:center; justify-content:center; border-radius:10px; transition: 0.5s; z-index: 2005;}
 .envelope.open { transform: scale(0); opacity:0; }
 
+/* التعديل هنا: إضافة pointer-events عشان الظرف يضغط عادي */
 .paper {
     background:#fff; color:#333; width:90%; max-width:400px; padding:30px;
     border-radius:15px; position:absolute; opacity:0; transform:translateY(100px);
     transition:1s cubic-bezier(0.175,0.885,0.32,1.275); text-align:center;
+    pointer-events: none; /* دي اللي كانت مخفية وعاملة المشكلة */
+    z-index: 2010;
 }
-.paper.show { opacity:1; transform:translateY(0); }
+.paper.show { opacity:1; transform:translateY(0); pointer-events: auto; } /* بترجع تشتغل لما الجواب يفتح */
 
 /* القلوب الطائرة */
 .falling { position:absolute; pointer-events:none; z-index:5; animation:fall linear forwards; color:#ff2d75; font-weight:bold; }
@@ -154,7 +157,7 @@ function drawStars() {
 window.addEventListener('resize', initStars);
 initStars(); drawStars();
 
-// --- تشغيل الموسيقى (بمجرد أول لمسة للشاشة) ---
+// --- تشغيل الموسيقى ---
 function playMusic() {
     if(!window.musicPlayed) {
         document.getElementById('player').innerHTML = `
@@ -164,7 +167,7 @@ function playMusic() {
     }
 }
 
-// --- إخفاء شاشة الترحيب تلقائياً ---
+// --- إخفاء شاشة الترحيب ---
 setTimeout(() => { document.getElementById('introOverlay').style.opacity='0'; 
     setTimeout(()=> document.getElementById('introOverlay').style.display='none', 1000);
 }, 3000);
@@ -181,7 +184,6 @@ function magicStart() {
             mc.style.display='flex';
             setTimeout(()=>mc.style.opacity='1', 100);
 
-            // تحريك البالونة
             setTimeout(()=>{
                 const b = document.getElementById('mainBalloon');
                 b.style.top = '15%'; 
@@ -189,7 +191,7 @@ function magicStart() {
                     b.style.transform = 'scale(3)'; b.style.opacity = '0';
                     const ui = document.getElementById('uiReveal');
                     ui.style.opacity='1'; ui.style.transform='translateY(0)';
-                    startFalling(); // بدء تساقط القلوب
+                    startFalling(); 
                 }, 3000);
             }, 500);
         }, 800);
@@ -224,13 +226,16 @@ function closeLetter(){
     document.getElementById('letterOverlay').style.display='none';
     document.getElementById('env').classList.remove('open');
     document.getElementById('paper').classList.remove('show');
+    
+    // إخفاء الرسالة عشان لو فتحت الجواب تاني
+    document.getElementById('finalMessage').style.display = 'none';
+    document.getElementById('surpriseBtn').style.display = 'block';
 }
 
 // --- المفاجأة النهائية ---
 function ultimateSurprise() {
     document.getElementById('finalMessage').style.display = 'block';
     document.getElementById('surpriseBtn').style.display = 'none';
-    // مطر قلوب كثيف
     for(let i=0; i<50; i++) {
         setTimeout(() => {
             const h = document.createElement('div');
@@ -243,9 +248,8 @@ function ultimateSurprise() {
     }
 }
 
-// --- العداد (من شهر 10 - أكتوبر 2025) ---
+// --- العداد (من 1 أكتوبر 2025) ---
 function updateCounter(){
-    // التاريخ مضبوط على 1 أكتوبر 2025
     const startDate = new Date('2025-10-01T00:00:00');
     const diff = new Date() - startDate;
     
